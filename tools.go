@@ -70,6 +70,12 @@ func (t *Tools) UploadFiles(r *http.Request, uploadDir string, rename ...bool) (
         t.MaxFileSize = 1024 * 1024 * 1024 // GB of filesize
     }
 
+    // Create directory
+    errDir := t.CreateDirIfNotExists(uploadDir)
+    if errDir != nil {
+        return nil, errDir
+    }
+
     err := r.ParseMultipartForm(int64(t.MaxFileSize))
     if err != nil {
         errorPMF := "failed paring uploaded files, the uploaded file is to big"
@@ -162,4 +168,17 @@ func (t *Tools) UploadFiles(r *http.Request, uploadDir string, rename ...bool) (
         }
     }
     return uploadedFiles, nil
+}
+
+// CreateDirIfNotExists creates a directory, and all necessary parents if it doesnt exists
+func (t *Tools) CreateDirIfNotExists(path string) error {
+    const mode = 0755
+    if _, err := os.Stat(path); os.IsNotExist(err) {
+        err := os.MkdirAll(path, mode)
+        if err != nil {
+            return err
+        }
+    }
+
+    return nil
 }
